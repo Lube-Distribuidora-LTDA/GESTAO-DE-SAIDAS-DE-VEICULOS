@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestão de Saída de Veículos — Lube Distribuidora</title>
+<link rel="icon" href="IMAGENS/logo-lube.png">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<header class="topo">
+  <div class="faixa">
+    <div class="selo">
+      <img id="logo" src="IMAGENS/logo-lube.png" alt="Lube Distribuidora">
+      <div class="marca-texto" id="marca-texto">Lube<small>DISTRIBUIDORA</small></div>
+    </div>
+    <div class="titulo">
+      <h1>Gestão de Saída de Veículos</h1>
+      <p>Araujo &middot; base de <b id="periodo-base">—</b> &middot;
+         <b id="total-veiculos">—</b> &middot; sem tolerância</p>
+    </div>
+    <nav class="abas" aria-label="Telas do painel">
+      <button type="button" id="aba-frota">Frota</button>
+      <button type="button" id="aba-veiculo">Veículo</button>
+      <button type="button" id="aba-importar">Importar</button>
+    </nav>
+    <div>
+      <button type="button" class="bt-claro" id="bt-exportar">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 4v11M12 15l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 19h16"/>
+        </svg>
+        Exportar planilha
+      </button>
+    </div>
+  </div>
+</header>
+
+<input type="file" id="arquivo" accept=".xlsx,.xlsm" multiple class="oculto">
+
+<main>
+
+  <div id="avisos"></div>
+
+  <!-- ======================================== filtros do painel ==== -->
+  <section class="painel" id="painel-filtros">
+    <div class="painel-topo">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="ponto"></span>
+        <h2>Filtros do painel</h2>
+        <span class="resumo-filtro" id="resumo-filtro">—</span>
+      </div>
+      <button type="button" class="bt-texto" id="bt-restaurar">Restaurar padrão</button>
+    </div>
+    <div class="grade-filtros">
+      <label class="campo">
+        <span class="rot">Data inicial</span>
+        <input type="date" id="f-de">
+      </label>
+      <label class="campo">
+        <span class="rot">Data final</span>
+        <input type="date" id="f-ate">
+      </label>
+      <label class="campo">
+        <span class="rot">Entrada do motorista</span>
+        <input type="time" id="f-entrada" step="1" value="06:30">
+      </label>
+      <div class="campo">
+        <div class="cabeca">
+          <span class="rot">Ignorar saída após</span>
+          <button type="button" class="bt-texto mini" id="bt-corte-noite">desativar</button>
+        </div>
+        <input type="time" step="1" id="f-corte-noite" value="18:00:00"
+               aria-label="Não considerar dias cuja primeira saída for depois deste horário">
+        <span class="nota" id="nota-noite"></span>
+      </div>
+      <label class="campo">
+        <span class="rot">Dias</span>
+        <select id="f-dias">
+          <option value="todos">Todos os dias</option>
+          <option value="uteis">Somente dias úteis</option>
+          <option value="fds">Somente fim de semana</option>
+        </select>
+      </label>
+      <label class="campo">
+        <span class="rot">Situação</span>
+        <select id="f-situacao">
+          <option value="todas">Todas</option>
+          <option value="atraso">Somente com atraso</option>
+          <option value="ok">Somente sem atraso</option>
+        </select>
+      </label>
+      <div class="campo faixa">
+        <div class="cabeca">
+          <span class="rot">Faixa de horários de saída</span>
+          <button type="button" class="bt-texto mini" id="bt-limpa-faixa">limpar</button>
+        </div>
+        <div class="par">
+          <em>das</em>
+          <input type="time" step="1" id="f-hmin" aria-label="Horário mínimo da primeira saída">
+          <em>às</em>
+          <input type="time" step="1" id="f-hmax" aria-label="Horário máximo da primeira saída">
+        </div>
+        <span class="nota" id="nota-faixa"></span>
+      </div>
+      <label class="campo placa">
+        <span class="rot">Veículo</span>
+        <select id="f-placa"></select>
+      </label>
+    </div>
+  </section>
+
+  <!-- ============================================== tela: frota ==== -->
+  <div id="tela-frota">
+    <div class="kpis" id="kpis-frota"></div>
+
+    <section class="cartao" id="cartao-ranking">
+      <h2>Horas de atraso por veículo</h2>
+      <p class="desc">Tempo total em que o veículo saiu depois da entrada do
+         motorista. Clique para abrir o veículo.</p>
+      <div class="lista-ranking" id="ranking"></div>
+    </section>
+
+    <section class="cartao" id="cartao-dia-a-dia">
+      <div class="cabeca-cartao">
+        <div>
+          <h2>Atraso da frota dia a dia</h2>
+          <p class="desc" style="margin-bottom:0">Soma das horas de atraso de
+             todos os veículos em cada dia do período filtrado.</p>
+        </div>
+        <div style="font-size:12px;color:var(--tinta-3)">pior dia
+          <b class="barlow" style="font-size:14px;color:var(--atraso)" id="pior-dia">—</b></div>
+      </div>
+      <div class="area-barras">
+        <div class="plot-barras" id="plot-barras"></div>
+        <div class="rotulos-dia" id="rotulos-dia"></div>
+      </div>
+    </section>
+
+    <div class="dupla">
+      <section class="cartao">
+        <h2>Saídas atrasadas por veículo</h2>
+        <p class="desc">Percentual de dias em que o veículo saiu depois da entrada do motorista.</p>
+        <div class="lista-aderencia" id="aderencia"></div>
+      </section>
+
+      <section class="cartao escuro">
+        <div style="display:flex;align-items:center;gap:9px">
+          <span class="ponto"></span>
+          <h2 style="margin:0;font-family:Barlow,sans-serif;font-size:16px;font-weight:600">
+            Piores casos do período</h2>
+        </div>
+        <p class="desc" style="margin:5px 0 16px">Os cinco dias com maior atraso
+           na primeira saída.</p>
+        <div class="lista-alertas" id="alertas"></div>
+      </section>
+    </div>
+
+    <section class="cartao">
+      <h2>Consolidado por veículo</h2>
+      <p class="desc">Clique em uma linha para abrir o dia a dia do veículo.</p>
+      <div class="rolagem">
+        <table id="tab-frota" style="min-width:920px">
+          <thead><tr id="tab-frota-cab"></tr></thead>
+          <tbody></tbody>
+          <tfoot></tfoot>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================ tela: veículo ==== -->
+  <div id="tela-veiculo" class="oculto">
+    <section class="cartao" style="padding:18px 20px">
+      <div class="cabeca-veiculo">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div class="placa-grande" id="v-placa">—</div>
+          <div>
+            <div style="font-size:15px;font-weight:600" id="v-motorista">—</div>
+            <div style="font-size:12.5px;color:var(--tinta-3);margin-top:2px" id="v-subtitulo">—</div>
+          </div>
+        </div>
+        <div class="chips" id="chips-placa"></div>
+      </div>
+    </section>
+
+    <div class="kpis" id="kpis-veiculo"></div>
+
+    <section class="cartao">
+      <h2>Primeira saída de cada dia × entrada do motorista</h2>
+      <p class="desc">Cada linha é um dia. O traço vermelho mede o atraso, da
+         entrada até a hora em que o veículo saiu.</p>
+      <div class="legenda">
+        <span><i style="background:var(--atraso)"></i> Com atraso</span>
+        <span><i style="background:var(--cinza)"></i> Sem atraso</span>
+        <span><i class="risco"></i> Entrada <b id="leg-entrada" class="barlow">06:30</b></span>
+      </div>
+      <div class="timeline" id="timeline"></div>
+    </section>
+
+    <div class="dupla">
+      <section class="cartao">
+        <h2>Distribuição da primeira saída</h2>
+        <p class="desc">Em quantas horas do dia caiu a primeira saída do veículo.</p>
+        <div class="faixas" id="faixas"></div>
+      </section>
+
+      <section class="cartao">
+        <h2>Comparação com a frota</h2>
+        <p class="desc">Como este veículo se posiciona nos indicadores do período.</p>
+        <div class="comparacao" id="comparacao"></div>
+      </section>
+    </div>
+
+    <section class="cartao">
+      <h2>Detalhamento por data</h2>
+      <p class="desc">Primeira saída, atraso e volume de viagens de cada dia do
+         período filtrado. Clique em uma data para abrir as viagens.</p>
+      <div class="rolagem">
+        <table id="tab-dias" style="min-width:820px">
+          <thead><tr id="tab-dias-cab"></tr></thead>
+          <tbody></tbody>
+          <tfoot></tfoot>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- =========================================== tela: importar ==== -->
+  <div id="tela-importar" class="oculto">
+    <div class="grade-importar">
+      <section class="cartao larga" style="padding:20px;margin-bottom:0">
+        <h2>Importar planilhas de Deslocamentos e Paradas</h2>
+        <p class="desc">Aceita vários arquivos e várias placas de uma vez. O que
+           for importado fica salvo neste navegador.</p>
+        <div class="solta">
+          <div class="chamada">Arraste as planilhas aqui</div>
+          <div class="aux">relatórios de Deslocamentos e Paradas em .xlsx ou .xlsm</div>
+          <div class="botoes">
+            <button type="button" class="bt-escuro" id="bt-escolher">Escolher arquivos</button>
+            <button type="button" class="bt-borda" id="bt-salvar">Salvar base (dados.js)</button>
+            <button type="button" class="bt-borda" id="bt-limpar">Limpar importações</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="cartao" style="margin-bottom:0">
+        <h2 style="margin-bottom:14px">Últimas importações</h2>
+        <div class="lista-import" id="lista-import"></div>
+      </section>
+
+      <section class="explica">
+        <h2>Como o indicador é calculado</h2>
+        <div class="corpo">
+          <div><b>1º horário do dia</b> é a menor <i>hora de início</i> de
+            deslocamento do veículo naquela data.</div>
+          <div><b>Horas de atraso</b> = 1º horário &minus; entrada do motorista,
+            quando o veículo sai depois da entrada. Saiu no horário ou antes, o
+            atraso é zero.</div>
+          <div><b>Sem tolerância:</b> 06:30 é 06:30. Uma saída às 06:30:20 é
+            atraso de 20 segundos.</div>
+          <div><b>Aderência</b> é o percentual de dias sem atraso.</div>
+          <div><b>Ignorar saída após</b> tira da conta os dias cuja primeira
+            saída foi à noite (padrão: 18:00) — um carro isolado saindo às 18h
+            costuma ser uma viagem avulsa, não a rotina da manhã, e distorceria
+            o indicador. Ajuste ou desative esse corte no painel de filtros.</div>
+          <div class="rodape">Colunas lidas da planilha: Evento, Placa,
+            Motorista, Hora início, Hora final, Tempo em movimento, Tempo ocioso,
+            Duração, Hodômetro, Distância, Local inicial e Local final.
+            Base gerada em <b id="gerado">—</b>.</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+</main>
+
+<div class="dica" id="dica" role="tooltip" aria-hidden="true"></div>
+<div class="cortina" id="cortina">
+  <div class="caixa">Solte as planilhas aqui
+    <small>relatórios de Deslocamentos e Paradas (.xlsx)</small>
+  </div>
+</div>
+
+<script src="leitor-xlsx.js"></script>
+<script src="dados.js"></script>
+<script src="painel.js"></script>
+</body>
+</html>
