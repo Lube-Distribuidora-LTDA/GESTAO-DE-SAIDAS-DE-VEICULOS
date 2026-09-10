@@ -1369,28 +1369,26 @@
     ]);
   }
 
-  /* exporta a tabela do período filtrado (CSV com ; abre direto no Excel) */
+  /* exporta a tabela do período filtrado como .xls, com a mesma identidade
+     visual (cores, banner, linhas coloridas por atraso) do relatório
+     completo — gerado na hora, no navegador, via escritor-planilha.js */
   function exportarPlanilha(linhas) {
-    var cab = ["Data", "Dia da semana", "Placa", "Motorista", "1o horario do dia",
-               "Entrada do motorista", "Horas de atraso", "Situacao", "Viagens", "KM do dia"];
-    var corpo = linhas.slice().sort(function (a, b) {
-      return a.data < b.data ? -1 : a.data > b.data ? 1
-           : a.placa < b.placa ? -1 : 1;
-    }).map(function (x) {
-      return [x.dataTxt, x.diaSemana, x.placa, x.motorista || "",
-              x.saidaTxt, estado.entrada,
-              x.atrasado ? hhmmss(x.atraso) : "00:00:00",
-              x.atrasado ? "Com atraso" : "Sem atraso",
-              x.viagens, String(x.km).replace(".", ",")];
+    if (!linhas.length) {
+      aviso("Nada para exportar", ["Não há dias no filtro selecionado."], true);
+      return;
+    }
+    var datas = linhas.map(function (x) { return x.data; }).sort();
+    var periodo = isoParaBr(datas[0]) + " a " + isoParaBr(datas[datas.length - 1]);
+    var xml = gerarPlanilhaSaida(linhas, {
+      entrada: estado.entrada,
+      geradoEm: new Date().toLocaleString("pt-BR"),
+      periodo: periodo
     });
-    var csv = [cab].concat(corpo).map(function (l) {
-      return l.map(function (c) {
-        return '"' + String(c).replace(/"/g, '""') + '"';
-      }).join(";");
-    }).join("\r\n");
-    baixar("saida-de-veiculos.csv", "﻿" + csv, "text/csv;charset=utf-8");
-    aviso("Planilha exportada — saida-de-veiculos.csv", [
-      corpo.length + " linha(s) do período filtrado. Abre direto no Excel."
+    baixar("saida-de-veiculos.xls", xml, "application/vnd.ms-excel;charset=utf-8");
+    aviso("Planilha exportada — saida-de-veiculos.xls", [
+      linhas.length + " linha(s) do período filtrado, com a formatação da Lube. " +
+      "Se o Excel avisar que o formato é diferente da extensão, escolha " +
+      "“Sim” — o arquivo abre normalmente, com todas as cores."
     ]);
   }
 

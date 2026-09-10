@@ -21,6 +21,7 @@ tipografia Barlow/Source Sans 3 e a paleta azul/vermelho da Lube.
 | `estilo.css` | Todo o visual (cores, cartões, tabelas, gráficos) — fontes Barlow/Source Sans 3 embutidas via `FONTES/` |
 | `painel.js` | Toda a lógica: leitura da base, filtros, gráficos, tabelas, importação |
 | `leitor-xlsx.js` | Leitor de `.xlsx` (ZIP + XML nativos do navegador, sem internet) |
+| `escritor-planilha.js` | Gera o `.xls` do botão "Exportar planilha", já com as cores da Lube |
 | `FONTES/` | Arquivos `.woff2` das fontes do design, extraídos do bundle original |
 | `dados.js` / `dados.json` | Base consolidada (o `.js` é o que o dashboard lê) |
 | `processar.py` | Alternativa em lote: lê a pasta `PLANILHAS REFERENCIAS` e regera a base |
@@ -182,10 +183,14 @@ Três abas no cabeçalho — **Frota**, **Veículo** e **Importar**:
 **Importar:** área de arrastar e soltar, histórico de importações e a
 explicação do cálculo do indicador.
 
-**Exportar planilha**, no cabeçalho, baixa um `.csv` simples (abre direto no
-Excel) com as linhas do período e dos filtros que estão na tela naquele
-momento — é o recorte rápido. O relatório completo, formatado e com mais
-dados é o `Gestao_Saida_Veiculos.xlsx` (próxima seção).
+**Exportar planilha**, no cabeçalho, baixa um `.xls` já com a identidade
+visual da Lube (banner azul, linhas coloridas por atraso, autofiltro e
+painel congelado) — gerado na hora, no navegador, com as linhas do período e
+dos filtros que estão na tela naquele momento (`escritor-planilha.js`, sem
+bibliotecas, mesmo princípio do leitor de `.xlsx`). Se o Excel avisar que o
+formato é diferente da extensão, é só escolher "Sim" — o arquivo abre normal,
+com todas as cores. O relatório completo, com mais abas e a logo embutida, é
+o `Gestao_Saida_Veiculos.xlsx` (próxima seção).
 
 ## O relatório Excel (`Gestao_Saida_Veiculos.xlsx`)
 
