@@ -21,7 +21,7 @@ tipografia Barlow/Source Sans 3 e a paleta azul/vermelho da Lube.
 | `estilo.css` | Todo o visual (cores, cartões, tabelas, gráficos) — fontes Barlow/Source Sans 3 embutidas via `FONTES/` |
 | `painel.js` | Toda a lógica: leitura da base, filtros, gráficos, tabelas, importação |
 | `leitor-xlsx.js` | Leitor de `.xlsx` (ZIP + XML nativos do navegador, sem internet) |
-| `escritor-planilha.js` | Gera o `.xlsx` do botão "Exportar planilha", já com as cores da Lube |
+| `escritor-planilha.js` | Gera o relatório de 5 abas do botão "Exportar planilha", já com as cores da Lube |
 | `FONTES/` | Arquivos `.woff2` das fontes do design, extraídos do bundle original |
 | `dados.js` / `dados.json` | Base consolidada (o `.js` é o que o dashboard lê) |
 | `processar.py` | Alternativa em lote: lê a pasta `PLANILHAS REFERENCIAS` e regera a base |
@@ -183,20 +183,25 @@ Três abas no cabeçalho — **Frota**, **Veículo** e **Importar**:
 **Importar:** área de arrastar e soltar, histórico de importações e a
 explicação do cálculo do indicador.
 
-**Exportar planilha**, no cabeçalho, baixa um `.xlsx` de verdade (o ZIP e o
-XML do formato são montados na hora, no navegador, sem bibliotecas — mesmo
-princípio do leitor de `.xlsx`) já com a identidade visual da Lube (banner
-azul, linhas coloridas por atraso, autofiltro e painel congelado), com as
-linhas do período e dos filtros que estão na tela naquele momento
-(`escritor-planilha.js`). Por ser um `.xlsx` real, abre direto no Excel sem
-nenhum aviso de formato. O relatório completo, com mais abas e a logo
-embutida, é o `Gestao_Saida_Veiculos.xlsx` (próxima seção).
+**Exportar planilha**, no cabeçalho, baixa um `Gestao_Saida_Veiculos.xlsx` de
+verdade — o mesmo relatório de 5 abas descrito na próxima seção, gerado na
+hora, no navegador, sem bibliotecas (`escritor-planilha.js` monta o ZIP e o
+XML do formato .xlsx na mão, mesmo princípio do leitor de `.xlsx`), já com o
+período e os filtros que estiverem na tela naquele momento. Por ser um
+`.xlsx` real, abre direto no Excel sem nenhum aviso de formato. A única
+diferença para o relatório gerado pelo `processar.py` é a logo: embuti-la
+exige gravar uma imagem dentro do `.xlsx`, o que não valia a complexidade
+extra só para esse detalhe — o resto (banner, cores, barras de dados,
+autofiltro, painel congelado) é idêntico.
 
 ## O relatório Excel (`Gestao_Saida_Veiculos.xlsx`)
 
-Gerado pelo `processar.py`, com a identidade visual da Lube (azul/vermelho da
-marca, logo no cabeçalho) e pronto pra imprimir ou mandar por e-mail — cada
-aba sai numa folha só (paisagem, ajustada à largura). Cinco abas:
+Cinco abas, com a identidade visual da Lube (azul/vermelho da marca) e
+prontas pra imprimir ou mandar por e-mail — cada aba sai numa folha só
+(paisagem, ajustada à largura). Pode vir do botão **Exportar planilha** do
+próprio painel (reflete o filtro atual da tela) ou do `processar.py`, que
+roda em lote sobre a pasta `PLANILHAS REFERENCIAS` e ainda inclui a logo no
+cabeçalho da capa:
 
 1. **Resumo Executivo** — a folha de rosto. Logo, período e total de veículos
    no topo; 5 indicadores em destaque (horas de atraso, aderência, atraso

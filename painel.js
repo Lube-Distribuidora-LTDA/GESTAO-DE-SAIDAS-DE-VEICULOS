@@ -1395,22 +1395,27 @@
   /* exporta a tabela do período filtrado como .xls, com a mesma identidade
      visual (cores, banner, linhas coloridas por atraso) do relatório
      completo — gerado na hora, no navegador, via escritor-planilha.js */
-  function exportarPlanilha(linhas) {
+  function exportarPlanilha(linhas, porPlaca, rF) {
     if (!linhas.length) {
       aviso("Nada para exportar", ["Não há dias no filtro selecionado."], true);
       return;
     }
     var datas = linhas.map(function (x) { return x.data; }).sort();
     var periodo = isoParaBr(datas[0]) + " a " + isoParaBr(datas[datas.length - 1]);
-    var bytes = gerarPlanilhaSaida(linhas, {
+    var bytes = gerarRelatorioCompleto({
+      linhas: linhas,
+      porPlaca: porPlaca,
+      rF: rF,
       entrada: estado.entrada,
+      corteNoite: corteNoiteSeg(),
       geradoEm: new Date().toLocaleString("pt-BR"),
       periodo: periodo
     });
-    baixar("saida-de-veiculos.xlsx", bytes,
+    baixar("Gestao_Saida_Veiculos.xlsx", bytes,
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    aviso("Planilha exportada — saida-de-veiculos.xlsx", [
-      linhas.length + " linha(s) do período filtrado, com a formatação da Lube."
+    aviso("Relatório exportado — Gestao_Saida_Veiculos.xlsx", [
+      "5 abas (Resumo Executivo, Saída de Veículos, Consolidado por placa, Por dia da " +
+      "semana e Indicadores), já com o período e os filtros que estavam na tela."
     ]);
   }
 
@@ -1569,7 +1574,7 @@
 
     if (estado.tela === "importar") pintarImportacoes();
 
-    el("bt-exportar").onclick = function () { exportarPlanilha(linhas); };
+    el("bt-exportar").onclick = function () { exportarPlanilha(linhas, porPlaca, rF); };
 
     animarFlip(antesFlip);
   }
