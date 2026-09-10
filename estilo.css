@@ -410,6 +410,14 @@ table.interna tbody td{padding:7px 10px}
 .comparacao .medidor>b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--tinta)}
 
 /* ------------------------------------------------ tela de importar */
+.estado-nuvem{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;
+  color:var(--tinta-3);margin:-4px 0 16px}
+.ponto-nuvem{width:7px;height:7px;border-radius:50%;background:var(--cinza-medio,#8b95b0);
+  display:block;flex:none;transition:background-color .3s ease}
+.estado-nuvem.ok{color:var(--ok)}
+.estado-nuvem.ok .ponto-nuvem{background:var(--ok)}
+.estado-nuvem.erro{color:var(--atraso)}
+.estado-nuvem.erro .ponto-nuvem{background:var(--atraso)}
 .grade-importar{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px}
 .grade-importar>.larga{grid-column:1 / -1}
 .solta{border:2px dashed rgba(14,23,108,.30);

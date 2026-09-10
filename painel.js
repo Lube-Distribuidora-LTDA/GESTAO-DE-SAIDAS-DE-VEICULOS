@@ -401,10 +401,31 @@
     };
   }
 
+  /* mostra, na tela Importar, se o painel está mesmo conversando com o
+     banco de dados agora — em vez de deixar isso invisível (ou, pior,
+     dizer que a base "vem do dados.js" mesmo quando veio do banco) */
+  function atualizarEstadoNuvem(r) {
+    var caixa = el("estado-nuvem"), txt = el("texto-nuvem");
+    if (!caixa || !txt) return;
+    if (!SUP || !SUP.url || !SUP.anonKey) {
+      caixa.className = "estado-nuvem";
+      txt.textContent = "Banco de dados não configurado — usando só a base local";
+    } else if (r == null) {
+      caixa.className = "estado-nuvem";
+      txt.textContent = "Conectando ao banco de dados…";
+    } else if (r.ok) {
+      caixa.className = "estado-nuvem ok";
+      txt.textContent = "Conectado ao banco de dados — " + n(r.total) + " deslocamento(s) no Supabase";
+    } else {
+      caixa.className = "estado-nuvem erro";
+      txt.textContent = "Sem conexão com o banco de dados agora — usando a base local deste computador";
+    }
+  }
+
   /* busca tudo que estiver no banco e junta na base local (sem duplicar —
      juntar() já ignora o que tiver a mesma chave placa+evento+inicio+final) */
   function buscarDoSupabase() {
-    if (!SUP || !SUP.url || !SUP.anonKey) return Promise.resolve(0);
+    if (!SUP || !SUP.url || !SUP.anonKey) return Promise.resolve({ ok: false, novos: 0, total: 0 });
     return fetch(SUP.url + "/rest/v1/deslocamentos?select=*&order=inicio.asc", {
       headers: supabaseCabecalhos()
     }).then(function (r) {
@@ -412,10 +433,11 @@
       return r.json();
     }).then(function (linhas) {
       var registros = linhas.map(registroDoSupabase).filter(Boolean);
-      return juntar(registros);
+      var novos = juntar(registros);
+      return { ok: true, novos: novos, total: linhas.length };
     }).catch(function (e) {
       console.warn("Supabase: não consegui buscar os dados (" + e.message + ") — usando a base local.");
-      return 0;
+      return { ok: false, novos: 0, total: 0 };
     });
   }
 
@@ -1199,7 +1221,8 @@
     var caixa = el("lista-import");
     if (!importacoes.length) {
       caixa.innerHTML = '<p class="vazio">Nenhuma importação neste navegador ainda.<br>' +
-        "A base atual vem do arquivo <b>dados.js</b> da pasta.</p>";
+        "A base atual vem do banco de dados (Supabase) e do arquivo <b>dados.js</b> " +
+        "da pasta, usado como reserva offline.</p>";
       return;
     }
     var estilos = {
@@ -1694,8 +1717,10 @@
     /* depois do primeiro desenho (com o que já tinha localmente), busca o
        que estiver no banco de dados e só re-renderiza se vier algo novo —
        assim quem abre o painel sem internet não fica esperando */
-    buscarDoSupabase().then(function (novos) {
-      if (!novos) return;
+    atualizarEstadoNuvem(null);
+    buscarDoSupabase().then(function (r) {
+      atualizarEstadoNuvem(r);
+      if (!r.novos) return;
       base.gerado_em = new Date().toLocaleString("pt-BR");
       guardar(CHAVE_BASE, { deslocamentos: base.deslocamentos, gerado_em: base.gerado_em });
       el("gerado").textContent = base.gerado_em;
