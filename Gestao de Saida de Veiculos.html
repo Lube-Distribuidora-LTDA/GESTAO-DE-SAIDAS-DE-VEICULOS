@@ -48,7 +48,12 @@
   <section class="painel" id="painel-filtros">
     <div class="painel-topo">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span class="ponto"></span>
+        <span class="icone-secao">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3.5 4.5h17L14 12v6l-4 2v-8L3.5 4.5Z"/>
+          </svg>
+        </span>
         <h2>Filtros do painel</h2>
         <span class="resumo-filtro" id="resumo-filtro">—</span>
       </div>
@@ -56,20 +61,20 @@
     </div>
     <div class="grade-filtros">
       <label class="campo">
-        <span class="rot">Data inicial</span>
+        <span class="rot" data-icone="calendario">Data inicial</span>
         <input type="date" id="f-de">
       </label>
       <label class="campo">
-        <span class="rot">Data final</span>
+        <span class="rot" data-icone="calendario">Data final</span>
         <input type="date" id="f-ate">
       </label>
       <label class="campo">
-        <span class="rot">Entrada do motorista</span>
+        <span class="rot" data-icone="relogio">Entrada do motorista</span>
         <input type="time" id="f-entrada" step="1" value="06:30">
       </label>
       <div class="campo">
         <div class="cabeca">
-          <span class="rot">Ignorar saída após</span>
+          <span class="rot" data-icone="lua">Ignorar saída após</span>
           <button type="button" class="bt-texto mini" id="bt-corte-noite">desativar</button>
         </div>
         <input type="time" step="1" id="f-corte-noite" value="18:00:00"
@@ -77,7 +82,7 @@
         <span class="nota" id="nota-noite"></span>
       </div>
       <label class="campo">
-        <span class="rot">Dias</span>
+        <span class="rot" data-icone="calendario">Dias</span>
         <select id="f-dias">
           <option value="todos">Todos os dias</option>
           <option value="uteis">Somente dias úteis</option>
@@ -85,7 +90,7 @@
         </select>
       </label>
       <label class="campo">
-        <span class="rot">Situação</span>
+        <span class="rot" data-icone="alvo">Situação</span>
         <select id="f-situacao">
           <option value="todas">Todas</option>
           <option value="atraso">Somente com atraso</option>
@@ -94,7 +99,7 @@
       </label>
       <div class="campo faixa">
         <div class="cabeca">
-          <span class="rot">Faixa de horários de saída</span>
+          <span class="rot" data-icone="relogio">Faixa de horários de saída</span>
           <button type="button" class="bt-texto mini" id="bt-limpa-faixa">limpar</button>
         </div>
         <div class="par">
@@ -106,7 +111,7 @@
         <span class="nota" id="nota-faixa"></span>
       </div>
       <label class="campo placa">
-        <span class="rot">Veículo</span>
+        <span class="rot" data-icone="veiculo">Veículo</span>
         <select id="f-placa"></select>
       </label>
     </div>

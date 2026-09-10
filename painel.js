@@ -651,11 +651,26 @@
     sol: '<circle cx="12" cy="12" r="4.3"/><path d="M12 3v2.4M12 18.6V21M4.9 4.9l1.7 1.7' +
       'M17.4 17.4l1.7 1.7M3 12h2.4M18.6 12H21M4.9 19.1l1.7-1.7M17.4 6.6l1.7-1.7"/>',
     calendario: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.4"/><path d="M3.5 9.8h17M8 3v4M16 3v4"/>',
-    lua: '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.7 6.7 0 0 0 10.5 10.5Z"/>'
+    lua: '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.7 6.7 0 0 0 10.5 10.5Z"/>',
+    check: '<path d="M4.5 12.5 9.5 17.5 19.5 6.5"/>',
+    veiculo: '<path d="M3.5 16v-3.2l2.1-4.3h12.8l2.1 4.3V16"/><path d="M3.5 16h17"/>' +
+      '<circle cx="7.6" cy="16.3" r="1.7"/><circle cx="16.4" cy="16.3" r="1.7"/>',
+    funil: '<path d="M3.5 4.5h17L14 12v6l-4 2v-8L3.5 4.5Z"/>',
+    lista: '<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+    busca: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/>'
   };
-  function svgIcone(nome) {
-    return '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" ' +
-      'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (ICONES[nome] || "") + "</svg>";
+  function svgIcone(nome, tamanho) {
+    tamanho = tamanho || 19;
+    return '<svg viewBox="0 0 24 24" width="' + tamanho + '" height="' + tamanho +
+      '" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" ' +
+      'stroke-linejoin="round">' + (ICONES[nome] || "") + "</svg>";
+  }
+  /* ícones dos rótulos dos filtros (marcados com data-icone no HTML) —
+     só precisa rodar uma vez, os rótulos são estáticos */
+  function decorarRotulos() {
+    Array.prototype.forEach.call(document.querySelectorAll(".rot[data-icone]"), function (rot) {
+      rot.insertAdjacentHTML("afterbegin", svgIcone(rot.getAttribute("data-icone"), 13));
+    });
   }
 
   /* ============================================================= tema ==
@@ -1276,15 +1291,44 @@
     }).join("");
   }
 
+  /* flutua sobre o painel, entra deslizando e some sozinho (a barra fina
+     embaixo marca a conta regressiva) — passar o mouse por cima pausa o
+     tempo, pra dar chance de ler antes de sumir */
+  var avisoTimer = null;
+  var DURACAO_AVISO = 4200, DURACAO_AVISO_RUIM = 7000;
   function aviso(titulo, itens, ruim) {
-    el("avisos").innerHTML = '<div class="aviso' + (ruim ? " ruim" : "") + '">' +
-      '<button class="fechar" type="button" aria-label="Fechar">×</button>' +
-      "<h3>" + esc(titulo) + "</h3>" +
-      (itens && itens.length
-        ? "<ul>" + itens.map(function (i) { return "<li>" + i + "</li>"; }).join("") + "</ul>"
-        : "") + "</div>";
-    var bt = el("avisos").querySelector(".fechar");
-    if (bt) bt.addEventListener("click", function () { el("avisos").innerHTML = ""; });
+    var caixa = el("avisos");
+    if (avisoTimer) { clearTimeout(avisoTimer); avisoTimer = null; }
+    var duracao = ruim ? DURACAO_AVISO_RUIM : DURACAO_AVISO;
+    caixa.innerHTML = '<div class="aviso' + (ruim ? " ruim" : "") + '">' +
+      '<div class="aviso-icone">' + svgIcone(ruim ? "alerta" : "check") + "</div>" +
+      '<div class="aviso-corpo">' +
+        "<h3>" + esc(titulo) + "</h3>" +
+        (itens && itens.length
+          ? "<ul>" + itens.map(function (i) { return "<li>" + i + "</li>"; }).join("") + "</ul>"
+          : "") +
+      "</div>" +
+      '<button class="fechar" type="button" aria-label="Fechar">' +
+        '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" ' +
+        'stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5 5 19"/></svg></button>' +
+      '<i class="barra-tempo" style="animation-duration:' + duracao + 'ms"></i>' +
+      "</div>";
+    var card = caixa.querySelector(".aviso");
+
+    function fechar() {
+      if (avisoTimer) { clearTimeout(avisoTimer); avisoTimer = null; }
+      if (!card.isConnected) return;
+      card.classList.add("saindo");
+      setTimeout(function () { if (caixa.contains(card)) caixa.innerHTML = ""; }, 300);
+    }
+    function iniciarContagem() { avisoTimer = setTimeout(fechar, duracao); }
+
+    card.querySelector(".fechar").addEventListener("click", fechar);
+    card.addEventListener("mouseenter", function () {
+      if (avisoTimer) { clearTimeout(avisoTimer); avisoTimer = null; }
+    });
+    card.addEventListener("mouseleave", iniciarContagem);
+    iniciarContagem();
   }
 
   function ajustarPeriodo(forcar) {
@@ -1648,7 +1692,18 @@
     // limpa chaves de versões anteriores
     try { localStorage.removeItem("lube.saidaveiculos.entradas"); } catch (e) {}
 
+    decorarRotulos();
     aplicarTema(recuperar(CHAVE_TEMA) === "escuro" ? "escuro" : "claro");
+
+    /* o toast de avisos flutua logo abaixo do cabeçalho — mede a altura de
+       verdade (varia com quebra de linha em telas estreitas) em vez de
+       cravar um número fixo */
+    function medirAlturaTopo() {
+      var topo = document.querySelector(".topo");
+      if (topo) document.documentElement.style.setProperty("--altura-topo", topo.offsetHeight + "px");
+    }
+    medirAlturaTopo();
+    window.addEventListener("resize", medirAlturaTopo);
     el("bt-tema").addEventListener("click", function () {
       aplicarTema(document.documentElement.getAttribute("data-tema") === "escuro" ? "claro" : "escuro");
     });

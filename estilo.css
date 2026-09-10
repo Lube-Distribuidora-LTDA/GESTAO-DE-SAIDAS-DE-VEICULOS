@@ -223,24 +223,33 @@ main{max-width:1480px;margin:0 auto;padding:20px 24px 56px}
   padding:12px 18px;background:var(--fundo-painel-topo);
   border-bottom:1px solid rgba(12,16,36,.09);box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
 }
-.ponto{width:7px;height:7px;border-radius:50%;background:var(--marca-vermelho);display:block;flex:none}
-.painel-topo h2{margin:0;font-family:Barlow,sans-serif;font-size:14px;font-weight:600;
+.icone-secao{width:27px;height:27px;border-radius:9px;background:var(--marca);color:#fff;
+             display:inline-flex;align-items:center;justify-content:center;flex:none;
+             box-shadow:0 4px 10px -4px rgba(14,23,108,.6)}
+.painel-topo h2{margin:0;font-family:Barlow,sans-serif;font-size:14px;font-weight:700;
                 letter-spacing:.02em;text-transform:uppercase}
 .bt-texto{background:none;border:0;color:var(--azul);font-size:12.5px;font-weight:600;
-          cursor:pointer;padding:4px 6px;border-radius:7px}
-.bt-texto:hover{background:rgba(42,59,168,.08)}
+          cursor:pointer;padding:4px 6px;border-radius:7px;transition:background .15s ease,color .15s ease}
+.bt-texto:hover{background:rgba(42,59,168,.1);color:var(--marca)}
 .bt-texto.mini{font-size:11.5px;padding:2px 5px;border-radius:6px}
 
 .grade-filtros{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
                gap:14px 18px;padding:16px 18px}
 .campo{display:flex;flex-direction:column;gap:6px;min-width:0}
-.rot{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
-     color:var(--apagado)}
+.rot{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;
+     letter-spacing:.08em;text-transform:uppercase;color:var(--tinta-3)}
+.rot svg{flex:none;color:var(--azul);opacity:.85}
 .campo input,.campo select{
   background:var(--fundo-campo);border:1px solid rgba(12,16,36,.14);border-radius:10px;
   padding:9px 10px;box-shadow:var(--sombra-campo);font-size:13px;color:var(--tinta);width:100%;
+  transition:border-color .16s ease,box-shadow .16s ease;
 }
-.campo input:focus,.campo select:focus{outline:2px solid var(--azul);outline-offset:1px}
+.campo select{cursor:pointer}
+.campo input:hover,.campo select:hover{border-color:rgba(42,59,168,.45)}
+.campo input:focus,.campo select:focus{
+  outline:none;border-color:var(--azul);
+  box-shadow:var(--sombra-campo),0 0 0 3px rgba(42,59,168,.16);
+}
 .campo input[type=time]{font-family:Barlow,sans-serif;font-weight:600}
 .campo.placa select{font-family:Barlow,sans-serif;font-weight:600;letter-spacing:.03em}
 .campo .cabeca{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -249,7 +258,9 @@ main{max-width:1480px;margin:0 auto;padding:20px 24px 56px}
                   gap:8px;align-items:center}
 .campo.faixa .par em{font-style:normal;font-size:11.5px;font-weight:600;color:var(--apagado)}
 .nota{font-size:11.5px;color:var(--apagado)}
-.resumo-filtro{font-size:12px;color:var(--tinta-3)}
+.resumo-filtro{font-size:11.5px;font-weight:700;color:var(--marca);background:rgba(42,59,168,.1);
+               padding:4px 11px;border-radius:20px;white-space:nowrap}
+:root[data-tema="escuro"] .resumo-filtro{background:rgba(255,255,255,.1);color:#c7cff5}
 
 /* ------------------------------------------------------------- KPIs */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:13px;
@@ -526,17 +537,41 @@ table.interna tbody td{padding:7px 10px}
 .explica b{color:var(--tinta)}
 .explica .rodape{border-top:1px solid rgba(12,16,36,.1);padding-top:11px;color:var(--tinta-3)}
 
-/* ----------------------------------------------------------- avisos */
-.aviso{background:var(--fundo-cartao);border:1px solid var(--borda);border-left:3px solid var(--azul);
-       border-radius:12px;padding:13px 16px;margin-bottom:16px;box-shadow:var(--sombra-cartao);
-       font-size:13px}
+/* ------------------------------------------------------ avisos (toast) */
+/* flutua sobre o painel (não empurra o conteúdo), entra deslizando e some
+   sozinho depois de alguns segundos — a barra fina embaixo mostra a conta
+   regressiva e pausa se o mouse passar por cima, pra dar tempo de ler */
+#avisos{position:fixed;top:calc(var(--altura-topo, 78px) + 14px);right:18px;z-index:75;width:380px;
+        max-width:calc(100vw - 32px);pointer-events:none}
+.aviso{
+  pointer-events:auto;position:relative;display:flex;gap:12px;align-items:flex-start;
+  background:var(--fundo-superficie);border:1px solid var(--borda);border-left:4px solid var(--azul);
+  border-radius:14px;padding:14px 34px 16px 15px;box-shadow:0 4px 10px -4px rgba(12,16,36,.22),
+  0 26px 46px -26px rgba(14,23,108,.6);font-size:13px;overflow:hidden;
+  animation:aviso-entrar .4s cubic-bezier(.22,.9,.3,1);
+}
 .aviso.ruim{border-left-color:var(--atraso)}
-.aviso h3{margin:0 0 7px;font-family:Barlow,sans-serif;font-size:14px;font-weight:600}
-.aviso ul{margin:0;padding-left:18px;color:var(--tinta-2)}
+.aviso.saindo{animation:aviso-sair .3s ease forwards}
+.aviso-icone{width:30px;height:30px;border-radius:9px;flex:none;display:flex;align-items:center;
+             justify-content:center;color:#fff;background:var(--azul);margin-top:1px;
+             box-shadow:0 4px 10px -4px rgba(12,16,36,.4)}
+.aviso.ruim .aviso-icone{background:var(--atraso)}
+.aviso-corpo{flex:1 1 auto;min-width:0}
+.aviso h3{margin:0 0 5px;font-family:Barlow,sans-serif;font-size:14px;font-weight:800}
+.aviso ul{margin:0;padding-left:17px;color:var(--tinta-2)}
 .aviso ul li{margin:3px 0}
-.aviso .fechar{float:right;background:none;border:0;color:var(--apagado);cursor:pointer;
-               font-size:18px;line-height:1;padding:0 2px}
-.aviso .fechar:hover{color:var(--tinta)}
+.aviso .fechar{position:absolute;top:10px;right:9px;background:none;border:0;color:var(--apagado);
+               cursor:pointer;padding:4px;border-radius:7px;display:flex}
+.aviso .fechar:hover{background:var(--realce-medio);color:var(--tinta)}
+.aviso .barra-tempo{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--azul);
+                    transform-origin:left;animation:aviso-tempo linear forwards}
+.aviso.ruim .barra-tempo{background:var(--atraso)}
+.aviso:hover .barra-tempo{animation-play-state:paused}
+@keyframes aviso-entrar{from{opacity:0;transform:translateX(28px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes aviso-sair{from{opacity:1;transform:none;max-height:200px}
+                      to{opacity:0;transform:translateX(28px) scale(.96)}}
+@keyframes aviso-tempo{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@media (max-width:640px){#avisos{left:16px;right:16px;top:14px;width:auto}}
 
 .vazio{color:var(--tinta-3);font-size:13px;padding:22px 4px;text-align:center}
 .vazio b{color:var(--tinta)}
