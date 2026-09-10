@@ -27,6 +27,7 @@ tipografia Barlow/Source Sans 3 e a paleta azul/vermelho da Lube.
 | `Gestao_Saida_Veiculos.xlsx` | Relatório Excel completo — 5 abas, com identidade visual da Lube (ver seção própria) |
 | `IMAGENS/logo-lube.png` | Logo usada no cabeçalho (reduzida da `logo maior.png`) |
 | `design do sistema - gestão de saida de veiculo.html` | Referência de design original (não precisa abrir — é só a fonte do estilo) |
+| `supabase-config.js` | Endereço e chave pública do banco de dados (ver seção própria) |
 
 ## O indicador: só atraso
 
@@ -222,6 +223,31 @@ aparece certo, não como "3:42:51" de outro dia.
 A logo entra via Pillow (já incluído); se a máquina que rodar o
 `processar.py` não tiver essa biblioteca, a planilha sai igual, só sem a
 imagem no cabeçalho — nada trava por causa disso.
+
+## Banco de dados (Supabase)
+
+Os dados também ficam num banco de dados na nuvem (Supabase), pra não
+dependerem só do navegador de quem importou. O painel continua funcionando
+100% offline (abre com duplo clique, sem servidor) — o banco é um reforço,
+não uma dependência:
+
+- **Ao abrir o painel**, ele já mostra a base local na hora (arquivo
+  `dados.js` + o que estiver salvo no navegador) e, em paralelo, busca no
+  banco os deslocamentos gravados por qualquer computador. Se vier algo
+  novo, o painel se atualiza sozinho — sem precisar recarregar a página.
+- **Ao importar uma planilha** na aba "Importar", o que for novo é enviado
+  pro banco automaticamente, além de salvo no navegador de quem importou.
+  Se a internet cair no meio, a importação continua valendo localmente e um
+  aviso avisa que a sincronização com o banco não deu certo.
+- **Só é possível ler e acrescentar, nunca alterar ou apagar.** As regras
+  de segurança do banco (RLS) não permitem `UPDATE`/`DELETE` pela chave
+  pública do site — só o cadastro de novos deslocamentos.
+- `supabase-config.js` guarda o endereço do projeto e a chave pública
+  (`anon`/`publishable`) — não é segredo, é a chave feita pra ficar no
+  navegador; as regras de segurança do banco são o que de fato protege os
+  dados.
+- Projeto Supabase: `ubfxhnricinclxkbvkzw` (tabelas `veiculos` e
+  `deslocamentos`, schema `public`).
 
 ## Interatividade e animações
 

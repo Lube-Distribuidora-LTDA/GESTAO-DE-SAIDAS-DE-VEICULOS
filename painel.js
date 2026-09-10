@@ -329,6 +329,123 @@
     return novos;
   }
 
+  /* ============================================ sincronização (Supabase) =
+     O painel funciona 100% offline (arquivo dados.js + o que for salvo no
+     navegador). Quando supabase-config.js está presente e há internet, ele
+     também: (1) busca os deslocamentos gravados no banco ao abrir, e
+     (2) envia pro banco tudo que for importado nesta tela — assim os dados
+     ficam disponíveis pra qualquer computador, não só pra quem importou.
+     Nunca altera nem apaga nada no banco, só acrescenta (RLS só permite
+     leitura e inserção). Se der erro (sem internet, banco fora do ar), o
+     painel continua funcionando normalmente com os dados que já tinha. */
+  var SUP = window.SUPABASE_CONFIG || null;
+
+  function supabaseCabecalhos() {
+    return {
+      apikey: SUP.anonKey,
+      Authorization: "Bearer " + SUP.anonKey,
+      "Content-Type": "application/json"
+    };
+  }
+
+  /* Postgres grava "inicio"/"final" com fuso. Pra mostrar as mesmas horas
+     que estavam na planilha original, lê sempre no fuso de São Paulo — não
+     no fuso do navegador de quem está olhando o painel. */
+  function paraLocalSP(isoUtc) {
+    if (!isoUtc) return null;
+    var d = new Date(isoUtc);
+    if (isNaN(d)) return null;
+    var partes = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Sao_Paulo", hour12: false,
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit"
+    }).formatToParts(d);
+    var m = {};
+    partes.forEach(function (p) { m[p.type] = p.value; });
+    if (m.hour === "24") m.hour = "00";
+    return new Date(+m.year, +m.month - 1, +m.day, +m.hour, +m.minute, +m.second);
+  }
+
+  /* caminho inverso: texto "dd/mm/aaaa hh:mm:ss" (formato interno) -> ISO
+     com o deslocamento fixo de São Paulo (-03:00, sem horário de verão
+     desde 2019), pra gravar no banco sem depender do fuso do navegador */
+  function paraIsoSP(txt) {
+    var d = paraData(txt);
+    if (!d) return null;
+    function p(v) { return (v < 10 ? "0" : "") + v; }
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
+      "T" + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()) + "-03:00";
+  }
+
+  function registroDoSupabase(row) {
+    var inicio = paraLocalSP(row.inicio);
+    if (!inicio) return null;
+    var fim = row.final ? paraLocalSP(row.final) : null;
+    return {
+      arquivo: row.arquivo || "",
+      evento: row.evento || "D",
+      placa: row.placa,
+      motorista: row.motorista || "",
+      inicio: dataBr(inicio) + " " + horaTxt(inicio),
+      final: fim ? dataBr(fim) + " " + horaTxt(fim) : "",
+      data: row.data || dataIso(inicio),
+      inicio_seg: inicio.getHours() * 3600 + inicio.getMinutes() * 60 + inicio.getSeconds(),
+      seg_movimento: row.seg_movimento || 0,
+      seg_ocioso: row.seg_ocioso || 0,
+      seg_duracao: row.seg_duracao || 0,
+      km: Number(row.km) || 0,
+      hod_inicial: Number(row.hod_inicial) || 0,
+      hod_final: Number(row.hod_final) || 0,
+      local_inicial: row.local_inicial || "",
+      local_final: row.local_final || ""
+    };
+  }
+
+  /* busca tudo que estiver no banco e junta na base local (sem duplicar —
+     juntar() já ignora o que tiver a mesma chave placa+evento+inicio+final) */
+  function buscarDoSupabase() {
+    if (!SUP || !SUP.url || !SUP.anonKey) return Promise.resolve(0);
+    return fetch(SUP.url + "/rest/v1/deslocamentos?select=*&order=inicio.asc", {
+      headers: supabaseCabecalhos()
+    }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (linhas) {
+      var registros = linhas.map(registroDoSupabase).filter(Boolean);
+      return juntar(registros);
+    }).catch(function (e) {
+      console.warn("Supabase: não consegui buscar os dados (" + e.message + ") — usando a base local.");
+      return 0;
+    });
+  }
+
+  /* envia deslocamentos novos pro banco — o próprio banco ignora quem já
+     existir (constraint única de placa+evento+inicio+final) */
+  function enviarParaSupabase(registros) {
+    if (!SUP || !SUP.url || !SUP.anonKey || !registros.length) return Promise.resolve(false);
+    var corpo = registros.map(function (r) {
+      return {
+        arquivo: r.arquivo, evento: r.evento, placa: r.placa, motorista: r.motorista || "",
+        inicio: paraIsoSP(r.inicio), final: r.final ? paraIsoSP(r.final) : null,
+        inicio_seg: r.inicio_seg, seg_movimento: r.seg_movimento, seg_ocioso: r.seg_ocioso,
+        seg_duracao: r.seg_duracao, km: r.km, hod_inicial: r.hod_inicial, hod_final: r.hod_final,
+        local_inicial: r.local_inicial || "", local_final: r.local_final || ""
+      };
+    });
+    return fetch(SUP.url + "/rest/v1/deslocamentos?on_conflict=placa,evento,inicio,final", {
+      method: "POST",
+      headers: Object.assign({}, supabaseCabecalhos(),
+        { Prefer: "resolution=ignore-duplicates,return=minimal" }),
+      body: JSON.stringify(corpo)
+    }).then(function (r) {
+      if (!r.ok) return r.text().then(function (t) { throw new Error("HTTP " + r.status + " " + t); });
+      return true;
+    }).catch(function (e) {
+      console.warn("Supabase: não consegui enviar os dados novos (" + e.message + ").");
+      return false;
+    });
+  }
+
   /* monta um registro por (data, placa) */
   function montarDias() {
     var grupos = {};
@@ -1150,6 +1267,7 @@
     btE.textContent = "Lendo…";
 
     var relato = [], totalNovos = 0, houveErro = false;
+    var paraEnviarSupabase = [];
 
     function fim() {
       base.gerado_em = new Date().toLocaleString("pt-BR");
@@ -1171,6 +1289,17 @@
         ? "Importação concluída — " + totalNovos + " deslocamento(s) novo(s)"
         : "Importação concluída — nada novo (os registros já estavam na base)",
         relato, houveErro);
+
+      if (paraEnviarSupabase.length) {
+        enviarParaSupabase(paraEnviarSupabase).then(function (ok) {
+          if (!ok) {
+            aviso("Aviso: não consegui enviar os dados novos para o banco de dados", [
+              "Os dados já estão salvos neste navegador. Verifique a internet e " +
+              "importe novamente para sincronizar com o banco de dados (Supabase)."
+            ], true);
+          }
+        });
+      }
     }
 
     function proximo(i) {
@@ -1188,6 +1317,7 @@
           } else {
             var novos = juntar(res.registros);
             totalNovos += novos;
+            paraEnviarSupabase = paraEnviarSupabase.concat(res.registros);
             var placas = {};
             res.registros.forEach(function (r) { placas[r.placa] = true; });
             var datas = res.registros.map(function (r) { return r.data; }).sort();
@@ -1557,12 +1687,25 @@
         "Clique em <b>Escolher arquivos</b> e envie os relatórios de " +
         "Deslocamentos e Paradas (.xlsx) das placas — ou arraste os arquivos " +
         "para esta tela."]);
-      return;
+    } else {
+      ajustarPeriodo(true);
+      atualizarPlacas();
+      render();
     }
 
-    ajustarPeriodo(true);
-    atualizarPlacas();
-    render();
+    /* depois do primeiro desenho (com o que já tinha localmente), busca o
+       que estiver no banco de dados e só re-renderiza se vier algo novo —
+       assim quem abre o painel sem internet não fica esperando */
+    buscarDoSupabase().then(function (novos) {
+      if (!novos) return;
+      base.gerado_em = new Date().toLocaleString("pt-BR");
+      guardar(CHAVE_BASE, { deslocamentos: base.deslocamentos, gerado_em: base.gerado_em });
+      el("gerado").textContent = base.gerado_em;
+      estado.tela = estado.tela === "importar" ? "frota" : estado.tela;
+      ajustarPeriodo(true);
+      atualizarPlacas();
+      render();
+    });
   }
 
   if (document.readyState === "loading") {
