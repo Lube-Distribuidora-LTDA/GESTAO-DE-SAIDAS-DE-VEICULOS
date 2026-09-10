@@ -66,6 +66,17 @@
   --fundo-campo:linear-gradient(180deg,#fbfcfe,#f2f5fc);
   --sombra-campo:inset 0 1px 2px rgba(12,16,36,.08),0 1px 0 rgba(255,255,255,.9);
   color-scheme:light;
+
+  /* cores de TEXTO (números/valores em cima do fundo da página ou do
+     cartão) — diferente das cores usadas em preenchimento (barras, selos
+     de ícone, pontos), que já funcionam bem sólidas nos dois temas.
+     Ficam mais vivas/brilhantes no escuro (ver override abaixo). */
+  --txt-atraso:#c52c27;
+  --txt-ok:#0f7a35;
+  --txt-marca:#0e176c;
+  --txt-azul:#2a3ba8;
+  --txt-vermelho:#f90a19;
+  --brilho-texto:none;
 }
 
 /* ---------------------------------------------------------- tema escuro
@@ -101,6 +112,17 @@
                0 30px 50px -38px rgba(0,0,0,.8);
   --sombra-painel:inset 0 1px 0 rgba(255,255,255,.05),0 18px 32px -18px rgba(0,0,0,.7),
                   0 48px 80px -50px rgba(0,0,0,.9);
+
+  /* números vivos, tipo mostrador — no claro as cores da marca já contrastam
+     bem com o fundo branco, mas no escuro (fundo quase preto) essas mesmas
+     cores "morrem"; aqui saem bem mais claras/saturadas, com um brilho
+     suave (glow) pra chamar atenção, como pedido */
+  --txt-atraso:#ff6459;
+  --txt-ok:#3ee08a;
+  --txt-marca:#7c9bff;
+  --txt-azul:#6fa8ff;
+  --txt-vermelho:#ff5470;
+  --brilho-texto:0 0 16px currentColor;
 }
 :root[data-tema="escuro"] .solta{
   border-color:rgba(255,255,255,.22);
@@ -109,6 +131,11 @@
 :root[data-tema="escuro"] .linha-zero{background:rgba(255,255,255,.18)}
 :root[data-tema="escuro"] .dica{border-color:rgba(255,255,255,.16)}
 :root[data-tema="escuro"] .item-import{border-color:rgba(255,255,255,.12)}
+:root[data-tema="escuro"] .bt-borda{border-color:rgba(255,255,255,.18)}
+:root[data-tema="escuro"] .campo input:hover,
+:root[data-tema="escuro"] .campo select:hover{border-color:rgba(124,155,255,.55)}
+:root[data-tema="escuro"] .campo input:focus,
+:root[data-tema="escuro"] .campo select:focus{box-shadow:var(--sombra-campo),0 0 0 3px rgba(124,155,255,.25)}
 :root[data-tema="escuro"] .campo input,
 :root[data-tema="escuro"] .campo select{border-color:rgba(255,255,255,.16)}
 :root[data-tema="escuro"] thead th{border-bottom-color:rgba(255,255,255,.14)}
@@ -118,6 +145,21 @@
 :root[data-tema="escuro"] .explica .rodape{border-top-color:rgba(255,255,255,.12)}
 :root[data-tema="escuro"] .aviso ul{color:var(--tinta-2)}
 
+/* cores de texto semânticas — usar no lugar de "style=color:..." fixo,
+   assim o número acompanha o tema (ver variáveis --txt-* no :root) */
+.txt-atraso{color:var(--txt-atraso)}
+.txt-ok{color:var(--txt-ok)}
+.txt-marca{color:var(--txt-marca)}
+.txt-azul{color:var(--txt-azul)}
+.txt-vermelho{color:var(--txt-vermelho)}
+.txt-apagado{color:var(--apagado)}
+/* brilho só nos números de destaque (KPIs e ranking) — sem exagero em
+   tabelas densas, onde ficaria poluído */
+.kpi .val.txt-atraso,.kpi .val.txt-ok,.kpi .val.txt-marca,.kpi .val.txt-azul,
+.kpi .val.txt-vermelho,.linha-ranking .valor.txt-atraso,.linha-aderencia .pc.txt-atraso{
+  text-shadow:var(--brilho-texto)
+}
+
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--plano)}
 body{
@@ -126,8 +168,8 @@ body{
   color:var(--tinta);
   -webkit-font-smoothing:antialiased;
 }
-a{color:var(--azul);text-decoration:none;transition:color .15s ease}
-a:hover{color:var(--marca-vermelho)}
+a{color:var(--txt-azul);text-decoration:none;transition:color .15s ease}
+a:hover{color:var(--txt-vermelho)}
 input,select,button{font:inherit}
 input,select{transition:border-color .15s ease,box-shadow .15s ease}
 ::selection{background:rgba(42,59,168,.18)}
@@ -228,9 +270,9 @@ main{max-width:1480px;margin:0 auto;padding:20px 24px 56px}
              box-shadow:0 4px 10px -4px rgba(14,23,108,.6)}
 .painel-topo h2{margin:0;font-family:Barlow,sans-serif;font-size:14px;font-weight:700;
                 letter-spacing:.02em;text-transform:uppercase}
-.bt-texto{background:none;border:0;color:var(--azul);font-size:12.5px;font-weight:600;
+.bt-texto{background:none;border:0;color:var(--txt-azul);font-size:12.5px;font-weight:600;
           cursor:pointer;padding:4px 6px;border-radius:7px;transition:background .15s ease,color .15s ease}
-.bt-texto:hover{background:rgba(42,59,168,.1);color:var(--marca)}
+.bt-texto:hover{background:var(--realce-medio);color:var(--txt-marca)}
 .bt-texto.mini{font-size:11.5px;padding:2px 5px;border-radius:6px}
 
 .grade-filtros{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
@@ -238,7 +280,7 @@ main{max-width:1480px;margin:0 auto;padding:20px 24px 56px}
 .campo{display:flex;flex-direction:column;gap:6px;min-width:0}
 .rot{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;
      letter-spacing:.08em;text-transform:uppercase;color:var(--tinta-3)}
-.rot svg{flex:none;color:var(--azul);opacity:.85}
+.rot svg{flex:none;color:var(--txt-azul);opacity:.85}
 .campo input,.campo select{
   background:var(--fundo-campo);border:1px solid rgba(12,16,36,.14);border-radius:10px;
   padding:9px 10px;box-shadow:var(--sombra-campo);font-size:13px;color:var(--tinta);width:100%;
@@ -247,7 +289,7 @@ main{max-width:1480px;margin:0 auto;padding:20px 24px 56px}
 .campo select{cursor:pointer}
 .campo input:hover,.campo select:hover{border-color:rgba(42,59,168,.45)}
 .campo input:focus,.campo select:focus{
-  outline:none;border-color:var(--azul);
+  outline:none;border-color:var(--txt-azul);
   box-shadow:var(--sombra-campo),0 0 0 3px rgba(42,59,168,.16);
 }
 .campo input[type=time]{font-family:Barlow,sans-serif;font-weight:600}
@@ -258,9 +300,9 @@ main{max-width:1480px;margin:0 auto;padding:20px 24px 56px}
                   gap:8px;align-items:center}
 .campo.faixa .par em{font-style:normal;font-size:11.5px;font-weight:600;color:var(--apagado)}
 .nota{font-size:11.5px;color:var(--apagado)}
-.resumo-filtro{font-size:11.5px;font-weight:700;color:var(--marca);background:rgba(42,59,168,.1);
+.resumo-filtro{font-size:11.5px;font-weight:700;color:var(--txt-marca);background:rgba(42,59,168,.1);
                padding:4px 11px;border-radius:20px;white-space:nowrap}
-:root[data-tema="escuro"] .resumo-filtro{background:rgba(255,255,255,.1);color:#c7cff5}
+:root[data-tema="escuro"] .resumo-filtro{background:rgba(255,255,255,.1)}
 
 /* ------------------------------------------------------------- KPIs */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:13px;
@@ -347,7 +389,7 @@ main{max-width:1480px;margin:0 auto;padding:20px 24px 56px}
 .barra span{position:absolute;left:50%;transform:translateX(-50%);bottom:100%;margin-bottom:8px;
             font-family:Barlow,sans-serif;font-size:11px;font-weight:700;
             font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
-.barra span.fraco{font-weight:600;color:var(--apagado);opacity:.8}
+.barra span.fraco{font-weight:600;opacity:.8}
 .rotulos-dia{grid-column:2;display:flex;gap:8px;margin-top:9px}
 .rotulos-dia>div{flex:1 1 0;min-width:0;text-align:center;font-family:Barlow,sans-serif;
                  font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -393,7 +435,7 @@ thead th{padding:10px 13px;background:var(--fundo-superficie-2);color:var(--tint
 thead th.dir{text-align:right}
 thead th.ordenavel{cursor:pointer;user-select:none}
 thead th.ordenavel:hover{color:var(--tinta)}
-thead th .seta{color:var(--azul);font-size:9px}
+thead th .seta{color:var(--txt-azul);font-size:9px}
 tbody td{padding:10px 13px;border-bottom:1px solid var(--divisor)}
 tbody tr:last-child>td{border-bottom:0}
 tbody td.dir{text-align:right;font-variant-numeric:tabular-nums}
@@ -414,7 +456,7 @@ tfoot td.dir{text-align:right}
   background-image:linear-gradient(180deg,rgba(255,255,255,.5),rgba(0,0,0,.12))}
 .seta-linha{display:inline-block;width:11px;color:var(--apagado);font-size:9px;
             transition:transform .12s}
-tr.aberta .seta-linha{transform:rotate(90deg);color:var(--azul)}
+tr.aberta .seta-linha{transform:rotate(90deg);color:var(--txt-azul)}
 
 /* viagens do dia */
 tr.detalhe>td{padding:0;background:var(--fundo-superficie-2)}
@@ -497,16 +539,16 @@ table.interna tbody td{padding:7px 10px}
   color:var(--tinta-3);margin:-4px 0 16px}
 .ponto-nuvem{width:7px;height:7px;border-radius:50%;background:var(--cinza-medio,#8b95b0);
   display:block;flex:none;transition:background-color .3s ease}
-.estado-nuvem.ok{color:var(--ok)}
+.estado-nuvem.ok{color:var(--txt-ok)}
 .estado-nuvem.ok .ponto-nuvem{background:var(--ok)}
-.estado-nuvem.erro{color:var(--atraso)}
+.estado-nuvem.erro{color:var(--txt-atraso)}
 .estado-nuvem.erro .ponto-nuvem{background:var(--atraso)}
 .grade-importar{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px}
 .grade-importar>.larga{grid-column:1 / -1}
 .solta{border:2px dashed rgba(14,23,108,.30);
        background:linear-gradient(180deg,rgba(14,23,108,.045),rgba(14,23,108,.015));
        border-radius:14px;padding:44px 24px;text-align:center}
-.solta .chamada{font-family:Barlow,sans-serif;font-size:20px;font-weight:600;color:var(--marca)}
+.solta .chamada{font-family:Barlow,sans-serif;font-size:20px;font-weight:600;color:var(--txt-marca)}
 .solta .aux{font-size:13px;color:var(--tinta-3);margin-top:6px}
 .solta .botoes{display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap}
 .bt-escuro{background:linear-gradient(180deg,#2634a4,#0e176c);color:#fff;border:0;
@@ -516,7 +558,7 @@ table.interna tbody td{padding:7px 10px}
 .bt-escuro:active{transform:translateY(1px);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 2px 0 #080c3c,0 6px 12px -6px rgba(14,23,108,.7)}
 .bt-escuro[disabled]{opacity:.6;cursor:progress}
-.bt-borda{background:var(--fundo-superficie);color:var(--marca);border:1px solid rgba(12,16,36,.15);
+.bt-borda{background:var(--fundo-superficie);color:var(--txt-marca);border:1px solid rgba(12,16,36,.15);
           border-radius:10px;padding:11px 20px;font-size:13px;font-weight:600;cursor:pointer}
 .bt-borda:hover{background:var(--fundo-superficie-2)}
 .bt-escuro:focus-visible,.bt-borda:focus-visible{outline:2px solid var(--azul);outline-offset:2px}

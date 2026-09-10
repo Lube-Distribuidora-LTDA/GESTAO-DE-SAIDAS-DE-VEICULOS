@@ -23,7 +23,7 @@
     ok: "#0f7a35", azul: "#2a3ba8", azulClaro: "#6b7ee0", azulEscuro: "#0b1252",
     marca: "#0e176c", marcaVermelho: "#f90a19",
     cinza: "#aab2c6", cinzaClaro: "#c3cadb", cinzaMedio: "#8b95b0",
-    cinzaEscuro: "#5d6785", tinta: "#0c1024", apagado: "#8189a3"
+    cinzaEscuro: "#5d6785"
   };
 
   /* ==================================================== utilidades == */
@@ -704,7 +704,7 @@
           '<div class="icone" data-icone="' + esc(k.icone || "") + '" style="background:' + k.cor + '">' +
             svgIcone(k.icone) + "</div>" +
           '<span class="rot">' + esc(k.rot) + "</span>" +
-          '<div class="val" style="color:' + (k.tinta || COR.tinta) + '">' +
+          '<div class="val' + (k.classeVal ? " " + k.classeVal : "") + '">' +
             '<span class="numero">' + esc(formatarTipo(k.tipo, partida)) + "</span>" +
             (k.un ? '<span class="un">' + esc(k.un) + "</span>" : "") + "</div>" +
           '<div class="obs">' + esc(k.nota || "") + "</div></div>";
@@ -721,7 +721,7 @@
         iconeEl.innerHTML = svgIcone(k.icone);
       }
       var valDiv = card.querySelector(".val");
-      valDiv.style.color = k.tinta || COR.tinta;
+      valDiv.className = "val" + (k.classeVal ? " " + k.classeVal : "");
       var unEl = valDiv.querySelector(".un");
       if (k.un) {
         if (unEl) unEl.textContent = k.un;
@@ -765,7 +765,7 @@
         '<div class="sub">' + esc(rotuloMotorista(p.motorista)) + "</div></div>" +
         '<div class="trilho"><i data-flip="rk-' + esc(p.placa) + '" style="width:' +
           Math.round((p.atraso / maxAtraso) * 100) + "%;background-color:" + cor + '"></i></div>' +
-        '<div class="valor" style="color:' + (vermelho ? COR.atraso : COR.tinta) + '">' +
+        '<div class="valor' + (vermelho ? " txt-atraso" : "") + '">' +
           hhmmss(p.atraso) + "</div></button>";
     }).join("");
 
@@ -821,7 +821,7 @@
         var v = porDia[k];
         var alto = v >= topo * 0.66, medio = v >= topo * 0.33;
         var cor = alto ? COR.atraso : medio ? COR.azul : COR.cinzaMedio;
-        var tinta = alto ? COR.atraso : medio ? "#1a2680" : COR.apagado;
+        var classeTinta = alto ? "txt-atraso" : medio ? "txt-azul" : "txt-apagado";
         var ehPior = v > 0 && v === maior;
         var pct = Math.round((v / topo) * 1000) / 10;
         return '<div class="col-barra"><button type="button" class="alvo-dia" data-dia="' + k +
@@ -829,14 +829,14 @@
           '. Clique para ver só este dia.">' +
           '<span class="barra' + (ehPior ? " pior" : "") + '" data-flip="dia-' + k +
           '" style="height:' + pct + "%;background-color:" + cor + '">' +
-          (v > 0 ? '<span class="' + (ehPior ? "" : "fraco") + '" style="color:' + tinta + '">' +
+          (v > 0 ? '<span class="' + (ehPior ? "" : "fraco") + " " + classeTinta + '">' +
             hhmm(v) + "</span>" : "") +
           "</span></button></div>";
       }).join("") + "</div>";
 
     rot.innerHTML = chaves.map(function (k) {
-      var cor = porDia[k] === maior && porDia[k] > 0 ? COR.atraso : COR.apagado;
-      return '<div style="color:' + cor + '">' + k.slice(8) + "</div>";
+      var classeTinta = porDia[k] === maior && porDia[k] > 0 ? "txt-atraso" : "txt-apagado";
+      return '<div class="' + classeTinta + '">' + k.slice(8) + "</div>";
     }).join("");
 
     var pior = chaves.filter(function (k) { return porDia[k] === maior; })[0];
@@ -892,13 +892,13 @@
       .sort(function (a, b) { return b.pctAtraso - a.pctAtraso; })     // pior primeiro
       .map(function (p) {
         var cor = corPctAtraso(p.pctAtraso);
-        var tinta = p.pctAtraso >= 45 ? COR.atraso : COR.tinta;
+        var classeTinta = p.pctAtraso >= 45 ? " txt-atraso" : "";
         return '<div class="linha-aderencia">' +
           '<div class="nome">' + esc(p.motorista || p.placa) + "</div>" +
           '<div class="pl">' + esc(p.motorista ? p.placa : "") + "</div>" +
           '<div class="trilho-fino"><i data-flip="ad-' + esc(p.placa) + '" style="width:' +
             Math.round(p.pctAtraso) + "%;background-color:" + cor + '"></i></div>' +
-          '<div class="pc" style="color:' + tinta + '">' + n(p.pctAtraso, 0) + "%</div></div>";
+          '<div class="pc' + classeTinta + '">' + n(p.pctAtraso, 0) + "%</div></div>";
       }).join("");
   }
 
@@ -982,8 +982,8 @@
         '<td class="dir">' + n(p.dias) + "</td>" +
         '<td class="dir">' + hhmm(p.saidaMedia) + "</td>" +
         '<td class="dir">' + n(p.atrasados) + "</td>" +
-        '<td class="dir" style="font-weight:700;color:' +
-          (p.atraso ? COR.atraso : COR.apagado) + '">' + hhmmss(p.atraso) + "</td>" +
+        '<td class="dir ' + (p.atraso ? "txt-atraso" : "txt-apagado") +
+          '" style="font-weight:700">' + hhmmss(p.atraso) + "</td>" +
         '<td class="dir">' + hhmm(p.medio) + "</td>" +
         '<td class="dir">' + hhmm(p.maior) + "</td>" +
         "<td><div class=\"med-aderencia\">" +
@@ -1007,7 +1007,7 @@
       '<td class="dir">' + n(rF.dias) + "</td>" +
       '<td class="dir">' + hhmm(rF.saidaMedia) + "</td>" +
       '<td class="dir">' + n(rF.atrasados) + "</td>" +
-      '<td class="dir" style="color:' + COR.atraso + '">' + hhmmss(rF.atraso) + "</td>" +
+      '<td class="dir txt-atraso">' + hhmmss(rF.atraso) + "</td>" +
       '<td class="dir">' + hhmm(rF.medio) + "</td>" +
       '<td class="dir">' + hhmm(rF.maior) + "</td>" +
       '<td class="dir">' + n(rF.aderencia, 0) + "%</td></tr>";
@@ -1042,7 +1042,7 @@
     html += itens.map(function (x) {
       var a = pct(Math.min(x.saidaSeg, ent)), b = pct(Math.max(x.saidaSeg, ent));
       var cor = x.atrasado ? COR.atraso : COR.cinza;
-      var tinta = x.atrasado ? COR.atraso : COR.apagado;
+      var classeTinta = x.atrasado ? "txt-atraso" : "txt-apagado";
       return '<div class="linha-dia" data-chave="' + esc(x.placa + "|" + x.data) + '">' +
         '<div class="quando">' + esc(x.dataTxt.slice(0, 5) + "  " + x.diaSemana.slice(0, 3)) + "</div>" +
         '<div class="pista">' +
@@ -1057,7 +1057,7 @@
             '" style="left:' + (Math.round(pct(x.saidaSeg) * 100) / 100) +
             "%;background:" + cor + '"></span>' +
         "</div>" +
-        '<div class="valor" style="color:' + tinta + '">' +
+        '<div class="valor ' + classeTinta + '">' +
           (x.atrasado ? hhmmss(x.atraso) : x.saidaTxt) + "</div></div>";
     }).join("");
 
@@ -1210,16 +1210,16 @@
     }
     corpo.innerHTML = ord.map(function (d) {
       var aberta = !!estado.abertos[d.placa + "|" + d.data];
-      var tinta = d.atrasado ? COR.atraso : COR.apagado;
+      var classeTinta = d.atrasado ? "txt-atraso" : "txt-apagado";
       var tr = '<tr class="clicavel' + (aberta ? " aberta" : "") + '" data-chave="' +
         esc(d.placa + "|" + d.data) + '" tabindex="0">' +
         '<td class="num"><span class="seta-linha">▶</span> ' + esc(d.dataTxt) + "</td>" +
         '<td class="suave">' + esc(d.diaSemana) + "</td>" +
         '<td class="dir" style="font-weight:600">' + esc(d.saidaTxt) + "</td>" +
         '<td class="dir suave">' + esc(estado.entrada) + "</td>" +
-        '<td class="dir" style="font-weight:700;color:' + tinta + '">' +
+        '<td class="dir ' + classeTinta + '" style="font-weight:700">' +
           (d.atrasado ? hhmmss(d.atraso) : "—") + "</td>" +
-        '<td><span class="pilula" style="color:' + tinta + '"><i style="background:' +
+        '<td><span class="pilula ' + classeTinta + '"><i style="background:' +
           (d.atrasado ? COR.atraso : COR.cinza) + '"></i>' + (d.atrasado ? "Com atraso" : "Sem atraso") +
           "</span></td>" +
         '<td class="dir">' + n(d.viagens) + "</td>" +
@@ -1241,7 +1241,7 @@
       '<td colspan="2">' + rV.dias + " dia(s)</td>" +
       '<td class="dir">méd. ' + hhmm(rV.saidaMedia) + "</td>" +
       '<td class="dir">' + esc(estado.entrada) + "</td>" +
-      '<td class="dir" style="color:' + COR.atraso + '">' + hhmmss(rV.atraso) + "</td>" +
+      '<td class="dir txt-atraso">' + hhmmss(rV.atraso) + "</td>" +
       "<td>" + rV.atrasados + " com atraso · " + rV.semAtraso + " sem</td>" +
       '<td class="dir">' + n(rV.viagens) + "</td>" +
       '<td class="dir">' + n(rV.km, 1) + "</td></tr>";
@@ -1277,9 +1277,9 @@
       return;
     }
     var estilos = {
-      ok: { fundo: "rgba(15,122,53,.10)", tinta: COR.ok, rot: "Importado" },
-      igual: { fundo: "rgba(12,16,36,.06)", tinta: "#6b7391", rot: "Sem novidade" },
-      erro: { fundo: "rgba(197,44,39,.10)", tinta: COR.atraso, rot: "Recusado" }
+      ok: { fundo: "rgba(15,122,53,.14)", tinta: "var(--txt-ok)", rot: "Importado" },
+      igual: { fundo: "var(--realce-medio)", tinta: "var(--tinta-3)", rot: "Sem novidade" },
+      erro: { fundo: "rgba(197,44,39,.14)", tinta: "var(--txt-atraso)", rot: "Recusado" }
     };
     caixa.innerHTML = importacoes.slice(0, 12).map(function (i) {
       var e = estilos[i.estado] || estilos.igual;
@@ -1573,7 +1573,7 @@
 
     if (estado.tela === "frota") {
       pintarKpis("kpis-frota", [
-        { rot: "Horas de atraso", bruto: rF.atraso, tipo: "hhmmss", cor: COR.atraso, tinta: COR.atraso,
+        { rot: "Horas de atraso", bruto: rF.atraso, tipo: "hhmmss", cor: COR.atraso, classeVal: "txt-atraso",
           icone: "alerta",
           nota: rF.atrasados + " de " + rF.dias + " dias com saída após as " + estado.entrada },
         { rot: "Aderência ao horário", bruto: rF.aderencia, tipo: "pct1", un: "%", cor: COR.marca,
@@ -1639,7 +1639,7 @@
           n(pv.viagens) + " viagens · " + n(pv.km, 0) + " km no período filtrado";
 
         pintarKpis("kpis-veiculo", [
-          { rot: "Horas de atraso", bruto: pv.atraso, tipo: "hhmmss", cor: COR.atraso, tinta: COR.atraso,
+          { rot: "Horas de atraso", bruto: pv.atraso, tipo: "hhmmss", cor: COR.atraso, classeVal: "txt-atraso",
             icone: "alerta",
             nota: pv.atrasados + " de " + pv.dias + " dias com atraso" },
           { rot: "Aderência", bruto: pv.aderencia, tipo: "pct1", un: "%", cor: COR.marca,
