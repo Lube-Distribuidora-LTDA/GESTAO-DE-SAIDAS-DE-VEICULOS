@@ -1402,16 +1402,15 @@
     }
     var datas = linhas.map(function (x) { return x.data; }).sort();
     var periodo = isoParaBr(datas[0]) + " a " + isoParaBr(datas[datas.length - 1]);
-    var xml = gerarPlanilhaSaida(linhas, {
+    var bytes = gerarPlanilhaSaida(linhas, {
       entrada: estado.entrada,
       geradoEm: new Date().toLocaleString("pt-BR"),
       periodo: periodo
     });
-    baixar("saida-de-veiculos.xls", xml, "application/vnd.ms-excel;charset=utf-8");
-    aviso("Planilha exportada — saida-de-veiculos.xls", [
-      linhas.length + " linha(s) do período filtrado, com a formatação da Lube. " +
-      "Se o Excel avisar que o formato é diferente da extensão, escolha " +
-      "“Sim” — o arquivo abre normalmente, com todas as cores."
+    baixar("saida-de-veiculos.xlsx", bytes,
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    aviso("Planilha exportada — saida-de-veiculos.xlsx", [
+      linhas.length + " linha(s) do período filtrado, com a formatação da Lube."
     ]);
   }
 
