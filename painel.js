@@ -16,6 +16,7 @@
 
   var CHAVE_BASE = "lube.saidaveiculos.base";
   var CHAVE_IMPORT = "lube.saidaveiculos.importacoes";
+  var CHAVE_TEMA = "lube.saidaveiculos.tema";
 
   var COR = {
     atraso: "#c52c27", atrasoClaro: "#f26a5f", atrasoEscuro: "#7c0f0b",
@@ -640,6 +641,35 @@
   /* os números não pulam pro valor novo — eles CONTAM (animarNumero) e o
      cartão pisca uma vez quando o valor realmente muda, pra deixar claro
      que o filtro surtiu efeito */
+  var ICONES = {
+    relogio: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+    alvo: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.2"/>' +
+      '<circle cx="12" cy="12" r=".6" fill="currentColor" stroke="none"/>',
+    ampulheta: '<path d="M7 3h10M7 21h10M7 3c0 5.5 5 6 5 9s-5 3.5-5 9M17 3c0 5.5-5 6-5 9s5 3.5 5 9"/>',
+    alerta: '<path d="M12 3.5 2.5 20h19L12 3.5Z"/><path d="M12 10v4"/>' +
+      '<circle cx="12" cy="16.7" r=".6" fill="currentColor" stroke="none"/>',
+    sol: '<circle cx="12" cy="12" r="4.3"/><path d="M12 3v2.4M12 18.6V21M4.9 4.9l1.7 1.7' +
+      'M17.4 17.4l1.7 1.7M3 12h2.4M18.6 12H21M4.9 19.1l1.7-1.7M17.4 6.6l1.7-1.7"/>',
+    calendario: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.4"/><path d="M3.5 9.8h17M8 3v4M16 3v4"/>',
+    lua: '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.7 6.7 0 0 0 10.5 10.5Z"/>'
+  };
+  function svgIcone(nome) {
+    return '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" ' +
+      'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (ICONES[nome] || "") + "</svg>";
+  }
+
+  /* ============================================================= tema ==
+     claro (padrão) ou escuro — só troca a pele visual (estilo.css reage a
+     [data-tema="escuro"] na <html>), nada na lógica do painel muda */
+  function aplicarTema(t) {
+    document.documentElement.setAttribute("data-tema", t);
+    guardar(CHAVE_TEMA, t);
+    var bt = el("bt-tema");
+    if (bt) {
+      bt.innerHTML = svgIcone(t === "escuro" ? "lua" : "sol");
+      bt.setAttribute("aria-label", t === "escuro" ? "Mudar para tema claro" : "Mudar para tema escuro");
+    }
+  }
   function formatarTipo(tipo, v) {
     if (tipo === "hhmmss") return hhmmss(v);
     if (tipo === "hhmm") return hhmm(v);
@@ -656,7 +686,8 @@
         var chave = destino + ":" + i;
         var partida = animacoesNum[chave] ? animacoesNum[chave].atual : 0;
         return '<div class="kpi">' +
-          '<i class="tira" style="background:' + k.cor + '"></i>' +
+          '<div class="icone" data-icone="' + esc(k.icone || "") + '" style="background:' + k.cor + '">' +
+            svgIcone(k.icone) + "</div>" +
           '<span class="rot">' + esc(k.rot) + "</span>" +
           '<div class="val" style="color:' + (k.tinta || COR.tinta) + '">' +
             '<span class="numero">' + esc(formatarTipo(k.tipo, partida)) + "</span>" +
@@ -668,7 +699,12 @@
     cartoes.forEach(function (k, i) {
       var card = cartoesDom[i];
       if (!card) return;
-      card.querySelector(".tira").style.background = k.cor;
+      var iconeEl = card.querySelector(".icone");
+      iconeEl.style.background = k.cor;
+      if (iconeEl.getAttribute("data-icone") !== (k.icone || "")) {
+        iconeEl.setAttribute("data-icone", k.icone || "");
+        iconeEl.innerHTML = svgIcone(k.icone);
+      }
       var valDiv = card.querySelector(".val");
       valDiv.style.color = k.tinta || COR.tinta;
       var unEl = valDiv.querySelector(".un");
@@ -1494,18 +1530,24 @@
     if (estado.tela === "frota") {
       pintarKpis("kpis-frota", [
         { rot: "Horas de atraso", bruto: rF.atraso, tipo: "hhmmss", cor: COR.atraso, tinta: COR.atraso,
+          icone: "alerta",
           nota: rF.atrasados + " de " + rF.dias + " dias com saída após as " + estado.entrada },
         { rot: "Aderência ao horário", bruto: rF.aderencia, tipo: "pct1", un: "%", cor: COR.marca,
+          icone: "alvo",
           nota: rF.semAtraso + " dias sem atraso" },
         { rot: "Atraso médio", bruto: rF.medio, tipo: "hhmmss", cor: COR.marcaVermelho,
+          icone: "ampulheta",
           nota: "média dos dias que atrasaram" },
         { rot: "Maior atraso", bruto: rF.maior, tipo: "hhmmss", cor: COR.atraso,
+          icone: "relogio",
           nota: rF.maiorDia
             ? rF.maiorDia.dataTxt + " · " + rF.maiorDia.placa + " · saiu " + rF.maiorDia.saidaTxt
             : "nenhum atraso no período" },
         { rot: "1º horário médio", bruto: rF.saidaMedia, tipo: "hhmm", cor: COR.azul,
+          icone: "sol",
           nota: "entrada do motorista às " + estado.entrada },
         { rot: "Dias com saída", bruto: rF.dias, tipo: "int", cor: COR.cinza,
+          icone: "calendario",
           nota: n(rF.viagens) + " viagens · " + n(rF.km, 0) + " km" }
       ]);
       pintarRanking(porPlaca);
@@ -1554,15 +1596,20 @@
 
         pintarKpis("kpis-veiculo", [
           { rot: "Horas de atraso", bruto: pv.atraso, tipo: "hhmmss", cor: COR.atraso, tinta: COR.atraso,
+            icone: "alerta",
             nota: pv.atrasados + " de " + pv.dias + " dias com atraso" },
           { rot: "Aderência", bruto: pv.aderencia, tipo: "pct1", un: "%", cor: COR.marca,
+            icone: "alvo",
             nota: pv.semAtraso + " dias no horário ou antes" },
           { rot: "Atraso médio", bruto: pv.medio, tipo: "hhmmss", cor: COR.marcaVermelho,
+            icone: "ampulheta",
             nota: "nos dias em que atrasou" },
           { rot: "Maior atraso", bruto: pv.maior, tipo: "hhmmss", cor: COR.atraso,
+            icone: "relogio",
             nota: pv.maiorDia ? pv.maiorDia.dataTxt + " · saiu " + pv.maiorDia.saidaTxt
                               : "nenhum atraso" },
           { rot: "1º horário médio", bruto: pv.saidaMedia, tipo: "hhmm", cor: COR.azul,
+            icone: "sol",
             nota: "entrada às " + estado.entrada }
         ]);
         pintarTimeline(itens, ent);
@@ -1600,7 +1647,11 @@
     if (imp && imp.length) importacoes = imp;
     // limpa chaves de versões anteriores
     try { localStorage.removeItem("lube.saidaveiculos.entradas"); } catch (e) {}
-    try { localStorage.removeItem("lube.saidaveiculos.tema"); } catch (e) {}
+
+    aplicarTema(recuperar(CHAVE_TEMA) === "escuro" ? "escuro" : "claro");
+    el("bt-tema").addEventListener("click", function () {
+      aplicarTema(document.documentElement.getAttribute("data-tema") === "escuro" ? "claro" : "escuro");
+    });
 
     el("gerado").textContent = base.gerado_em || "—";
     el("f-entrada").value = estado.entrada;

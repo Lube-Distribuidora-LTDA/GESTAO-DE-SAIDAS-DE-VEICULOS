@@ -297,8 +297,16 @@ desenho da barra, então um dia sem atraso continua fácil de apontar e clicar.
 
 A aderência por veículo usa verde a partir de 80%, azul de 55% a 80%, e
 vermelho abaixo disso. O ranking de atraso pinta de vermelho os veículos que
-concentram 60% ou mais do maior atraso da frota. É um design só claro — sem
-alternância de tema.
+concentram 60% ou mais do maior atraso da frota.
+
+**Tema claro/escuro**: botão no canto do cabeçalho (ícone de sol/lua), a
+preferência fica salva no navegador. As duas peles usam as mesmas cores de
+marca — só trocam as superfícies (fundo, cartões, tabelas) e o texto.
+
+**Cartões de KPI**: cada um tem um selo de ícone colorido (alerta, alvo,
+ampulheta, relógio, sol, calendário) além do número — mais fácil de
+reconhecer o indicador rapidamente, e os números saem em negrito forte
+(`font-weight:800`) para pesar mais na leitura.
 
 ## Leitura do período 13/08/2026 a 09/09/2026 (TOH8G66)
 
