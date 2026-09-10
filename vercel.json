@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/Gestao%20de%20Saida%20de%20Veiculos.html" }
+  ]
+}
