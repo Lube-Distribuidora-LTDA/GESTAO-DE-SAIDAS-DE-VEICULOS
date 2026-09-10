@@ -52,6 +52,13 @@
     return String(txt == null ? "" : txt).normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   }
+  /* remove h\u00edfen/espa\u00e7o/pontua\u00e7\u00e3o e deixa s\u00f3 letras e n\u00fameros \u2014 assim
+     "TOF-8J77" e "TOF8J77" s\u00e3o sempre a mesma placa, nunca duas diferentes
+     por causa de formata\u00e7\u00e3o inconsistente entre planilhas (e nunca viram
+     dois ve\u00edculos separados quando reimportadas) */
+  function normalizarPlaca(txt) {
+    return String(txt == null ? "" : txt).toUpperCase().replace(/[^A-Z0-9]/g, "");
+  }
   function guardar(chave, valor) {
     try { localStorage.setItem(chave, JSON.stringify(valor)); return true; }
     catch (e) { return false; }
@@ -262,7 +269,7 @@
         if (!inicio) continue;
         var evento = String(v(linha, "evento") || "D").trim().toUpperCase();
         if (evento && "DP".indexOf(evento[0]) < 0) continue;
-        var placa = String(v(linha, "placa") || placaMeta || "").trim().toUpperCase();
+        var placa = normalizarPlaca(v(linha, "placa") || placaMeta);
         if (!placa) continue;
         var motorista = String(v(linha, "motorista") || "").trim();
         if (["sem motorista", "none", ""].indexOf(semAcento(motorista)) >= 0) {
@@ -307,9 +314,10 @@
   }
   function normalizarRegistros(lista) {
     return (lista || []).map(function (r) {
-      if (!r.motorista) return r;
-      var m = normalizarMotorista(r.motorista);
-      return m === r.motorista ? r : Object.assign({}, r, { motorista: m });
+      var m = r.motorista ? normalizarMotorista(r.motorista) : r.motorista;
+      var p = normalizarPlaca(r.placa);
+      if (m === r.motorista && p === r.placa) return r;
+      return Object.assign({}, r, { motorista: m, placa: p });
     });
   }
 
@@ -385,7 +393,7 @@
     return {
       arquivo: row.arquivo || "",
       evento: row.evento || "D",
-      placa: row.placa,
+      placa: normalizarPlaca(row.placa),
       motorista: row.motorista || "",
       inicio: dataBr(inicio) + " " + horaTxt(inicio),
       final: fim ? dataBr(fim) + " " + horaTxt(fim) : "",

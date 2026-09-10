@@ -114,7 +114,14 @@ qualquer ponto da tela. O arquivo é lido no próprio navegador; nada é enviado
 para fora.
 
 - Registros repetidos são ignorados: reimportar o mesmo relatório não duplica
-  nada (a chave é placa + hora de início + hora final).
+  nada (a chave é placa + evento + hora de início + hora final).
+- **Reimportar uma placa que já existe não cria um veículo novo** — ela
+  continua sendo a mesma linha na frota, só ganham entrada os dias/viagens que
+  ainda não estavam na base. A placa é normalizada (só letras e números,
+  maiúsculas) assim que entra no sistema — "TOF-8J77" e "TOF8J77" são sempre
+  tratadas como a mesma placa, mesmo que uma planilha grave com hífen e outra
+  sem. Só vira um veículo novo de verdade quando a placa normalizada é
+  realmente inédita na base.
 - O que você importa fica salvo **neste navegador**. Para deixar permanente e
   levar para outra máquina, clique em **Salvar base (dados.js)**: baixa um
   `dados.js` que você substitui nesta pasta.

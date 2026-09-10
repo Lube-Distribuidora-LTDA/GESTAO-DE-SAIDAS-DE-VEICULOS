@@ -22,6 +22,7 @@ SEM TOLERÂNCIA: 06:30 é 06:30. A comparação é exata, ao segundo — uma sa�
 Saídas: dados.js (lido pelo dashboard), dados.json e Gestao_Saida_Veiculos.xlsx
 """
 import json
+import re
 import unicodedata
 from datetime import datetime
 from pathlib import Path
@@ -79,6 +80,13 @@ BRANCO = "FFFFFF"
 def sem_acento(txt):
     return "".join(c for c in unicodedata.normalize("NFKD", str(txt))
                    if not unicodedata.combining(c)).lower().strip()
+
+
+def normalizar_placa(txt):
+    """Remove hífen/espaço/pontuação e deixa só letras e números — assim
+    'TOF-8J77' e 'TOF8J77' são sempre a mesma placa, nunca duas diferentes
+    por causa de formatação inconsistente entre planilhas."""
+    return re.sub(r"[^A-Z0-9]", "", str(txt or "").upper())
 
 
 def para_datetime(valor):
@@ -220,7 +228,7 @@ def ler_arquivo(caminho):
             evento = str(valor(linha, "evento") or "D").strip().upper()
             if evento and evento[0] not in ("D", "P"):
                 continue
-            placa = str(valor(linha, "placa") or placa_meta or "").strip().upper()
+            placa = normalizar_placa(valor(linha, "placa") or placa_meta or "")
             if not placa:
                 continue
             motorista = str(valor(linha, "motorista") or "").strip()
