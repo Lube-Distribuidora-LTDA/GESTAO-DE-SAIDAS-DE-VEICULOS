@@ -1532,16 +1532,8 @@
     var ignoradosNoite = corte != null
       ? filtrar(todos, { ignorarCorteNoite: true }).length - linhas.length : 0;
 
-    // cabeçalho e resumo dos filtros
-    if (linhas.length) {
-      var datas = linhas.map(function (d) { return d.data; }).sort();
-      el("periodo-base").textContent =
-        isoParaBr(datas[0]) + " a " + isoParaBr(datas[datas.length - 1]);
-    } else {
-      el("periodo-base").textContent = "—";
-    }
+    // resumo dos filtros
     var rotVeiculos = porPlaca.length === 1 ? " veículo" : " veículos";
-    el("total-veiculos").textContent = porPlaca.length + rotVeiculos;
     el("resumo-filtro").textContent = n(rF.dias) + " dias · " + porPlaca.length +
       rotVeiculos + " · entrada " + estado.entrada +
       (fx ? " · saídas entre " + hhmm(fx.min) + " e " + hhmm(fx.max) : "") +
