@@ -289,6 +289,7 @@ main{max-width:1480px;margin:0 auto;padding:20px 24px 56px}
   transition:border-color .16s ease,box-shadow .16s ease;
 }
 .campo select{cursor:pointer}
+.campo select option{color:#0c1024;background:#fff}
 .campo input:hover,.campo select:hover{border-color:rgba(42,59,168,.45)}
 .campo input:focus,.campo select:focus{
   outline:none;border-color:var(--txt-azul);
