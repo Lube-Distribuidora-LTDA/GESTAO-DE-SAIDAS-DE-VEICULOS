@@ -29,6 +29,24 @@ tipografia Barlow/Source Sans 3 e a paleta azul/vermelho da Lube.
 | `IMAGENS/logo-lube.png` | Logo usada no cabeçalho (reduzida da `logo maior.png`) |
 | `design do sistema - gestão de saida de veiculo.html` | Referência de design original (não precisa abrir — é só a fonte do estilo) |
 | `supabase-config.js` | Endereço e chave pública do banco de dados (ver seção própria) |
+| `middleware.ts` / `sentinela-guarda.ts` | Guarda da Sentinela Lube (ver seção Acesso) |
+
+## Acesso
+
+O sistema publicado (`https://gestao-de-saidas-de-veiculos.vercel.app`) é protegido pela
+**Sentinela Lube**: só entra quem tem login no **Painel Lube** com permissão para este sistema
+(`saida-veiculos`). Quem não tem é mandado para a tela de login do portal
+(`https://painel-lube-distribuidora.vercel.app`). Nenhuma rota fica aberta sem login — a página,
+`dados.json`, `dados.js` e o `.xlsx` passam todos pelo guarda.
+
+- O guarda mora na raiz do projeto: `middleware.ts` (casca, com `FECHADO = { projeto:
+  'gestao-de-saidas-de-veiculos', slug: 'saida-veiculos' }`) e `sentinela-guarda.ts` (núcleo,
+  cópia de `1. PAINEL LUBE DISTRIBUIDORA/guarda/`). Não tem segredo nesses arquivos.
+- Quem decide é a central (Supabase › PAINEL LUBE DISTRIBUIDORA › `sentinela.sistemas`, campo
+  `exige_login`). Se a central estiver fora, o guarda continua exigindo login (modo fechado).
+- Saúde do guarda: `/.sentinela/saude`. Abrir o HTML com duplo clique, no computador, não passa pelo
+  guarda.
+- Emergência e instalação: `1. PAINEL LUBE DISTRIBUIDORA/guarda/LEIA-ME.md`.
 
 ## O indicador: só atraso
 
