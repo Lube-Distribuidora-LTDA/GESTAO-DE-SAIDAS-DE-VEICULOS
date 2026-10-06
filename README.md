@@ -44,6 +44,8 @@ O sistema publicado (`https://gestao-de-saidas-de-veiculos.vercel.app`) é prote
   cópia de `1. PAINEL LUBE DISTRIBUIDORA/guarda/`). Não tem segredo nesses arquivos.
 - Quem decide é a central (Supabase › PAINEL LUBE DISTRIBUIDORA › `sentinela.sistemas`, campo
   `exige_login`). Se a central estiver fora, o guarda continua exigindo login (modo fechado).
+- Desde 2026-10-06 o `exige_login` está **ligado** (`true`), sem rotas públicas: sem sessão, a
+  página vai para o portal (`/?abrir=saida-veiculos`) e os arquivos de dados respondem 401.
 - Saúde do guarda: `/.sentinela/saude`. Abrir o HTML com duplo clique, no computador, não passa pelo
   guarda.
 - Emergência e instalação: `1. PAINEL LUBE DISTRIBUIDORA/guarda/LEIA-ME.md`.
