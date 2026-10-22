@@ -1,5 +1,13 @@
 {
   "rewrites": [
     { "source": "/", "destination": "/Gestao%20de%20Saida%20de%20Veiculos.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' https://painel-lube-distribuidora.vercel.app" }
+      ]
+    }
   ]
 }
